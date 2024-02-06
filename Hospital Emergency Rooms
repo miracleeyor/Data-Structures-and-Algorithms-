@@ -1,0 +1,518 @@
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Runtime;
+using static MyApplication.Assignment22020;
+using MyApplication;
+using static Assignment2.Patient;
+
+namespace Assignment2
+{
+
+    public static class Assignment2
+    {
+        public static void Main(string[] args)
+        {
+            DateTime current = new DateTime(2023, 11, 10, 9, 0, 0);
+            Console.Write(current.ToString("HH:mm:ss" + "-"));
+
+          
+
+
+        }
+
+        // Helper method to display the results in the console
+        private static void Output(int minDoctors, int maxDoctors, List<double> averageWaitTimes)
+        {
+            Console.WriteLine("Simulation Results:");
+            Console.WriteLine("Number of Doctors | Average Wait Time");
+
+            for (int i = 0; i < averageWaitTimes.Count; i++)
+            {
+                int numDoctors = minDoctors + i;
+                Console.WriteLine($"{numDoctors,18} | {averageWaitTimes[i],17:F2} seconds");
+            }
+        }
+
+
+
+
+    }
+
+
+
+
+    public class Patient // the class that assesses the patient's emergency level and their treatment time.
+    {
+        public int patientNum { get; set; } // read-write properties of the data members
+        public int emgLevel { get; set; }
+        public double tTime { get; set; }
+
+        public Patient(int PatientNumber, int EmgLevel, double treatmentTime)
+        {
+            patientNum = PatientNumber;
+            emgLevel = EmgLevel;
+            tTime = treatmentTime;
+        }
+
+        private double InterArrivalTime(int M, int mean) // Calculates the Inter Arrival Time of the patients.
+        {
+            M = mean;
+
+            Random r = new Random();
+            double u = r.NextDouble();
+
+            double intArrival = -M * Math.Log(1 - u);
+            return intArrival;
+        }
+
+        private double TreatmentTime() // Calculates the treatment time for each Emergency Level
+        {
+            EmergencyLevel();
+
+
+
+            Random r = new Random();
+            double u = r.NextDouble();
+
+            double tTime = -T * Math.Log(1 - u);
+
+
+            if (emgLevel == 1) // the case for which the emergency level is 1
+            {
+                return tTime * 1;
+            }
+            else if (emgLevel == 2) // the case for which the emergency level is 2
+            {
+                return tTime * 2;
+            }
+
+            else if (emgLevel == 3) // the case for which the emergency level is 3
+            {
+                return tTime * 4;
+            }
+            else // the case for which the emergency level isn't with the range.
+            {
+                throw new Exception(" This Emergency Level is not within the range.");
+            }
+
+
+        }
+
+        public int EmergencyLevel() // Assesses the emergency levels of the patients
+        {
+            Random u = new Random();
+            Double r = u.NextDouble();
+
+            if (r < 0.6)
+            {
+                Console.WriteLine("Low Emergency Level");
+                return 1;
+            }
+            else if (r >= 6 || r < 0.9)
+            {
+                return 2;
+            }
+            else
+            {
+                Console.WriteLine("High Emergency Level ");
+                return 3;
+            }
+        }
+
+        public class Event : IComparable<Event>
+        {
+
+
+            // Properties for the Event Class
+
+            public Patient patientID { get; set; }// Instance of the Patient
+            public string EventType { get; set; }// Arrival or Departure event
+            public double eventTime { get; set; }//Doctor Assigned tot the Patient (Departure Only)
+            public int doctorID { get; set; }//
+            public double TimeOccur { get; internal set; }
+
+            public Event(Patient patientNum, double eventTime)// Constructor for the Arrival Time
+            {
+                this.patientID = patientNum;
+                this.EventType = "Arrival";
+                // Assuming there is a method to calculate treatment time based on patient's emergency level
+                this.eventTime += TreatmentTime(patientNum.EmergencyLevel);
+
+            }
+
+
+
+            public Event(Patient patientNum, int doctorID, double eventTime)// Constructor for the Departure Time
+            {
+                this.patientID = patientNum;
+                this.EventType = "Departure";
+                this.doctorID = doctorID;
+                this.eventTime = eventTime;
+
+            }
+
+
+
+            public override string ToString()
+            {
+
+                return base.ToString();
+            }
+
+            public int CompareTo(Event other)
+            {
+                throw new NotImplementedException("This patient is invalid.");
+            }
+        }
+
+
+    }
+
+    public class PriorityQueue<T> where T : IComparable<T>
+    {
+        private List<T> A; // Linear array of items (Generic)
+        internal int count;
+
+        public PriorityQueue()
+        {
+            A = new List<T>();
+        }
+
+        public void Insert(T item)
+        {
+            A.Add(item);
+            PercolateUp(A.Count - 1);
+        }
+
+        private void PercolateUp(int i)//
+        {
+            while (i > 0)
+            {
+                int parent = (i - 1) / 2;
+                if (A[i].CompareTo(A[parent]) > 0)
+                {
+                    Swap(i, parent);
+                    i = parent;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+
+
+
+
+        public T Front()
+        {
+            if (A.Count > 0)
+            {
+                return A[0];
+            }
+            else
+            {
+                throw new InvalidOperationException("Priority queue is empty");
+            }
+        }
+
+        public void Remove()
+        {
+            if (A.Count > 0)
+            {
+                A[0] = A[A.Count - 1];
+                A.RemoveAt(A.Count - 1);
+                PercolateDown(0);
+            }
+            else
+            {
+                throw new InvalidOperationException("Priority queue is empty");
+            }
+        }
+
+        private void PercolateDown(int i)
+        {
+            while (2 * i + 1 < A.Count)
+            {
+                int lChild = 2 * i + 1;
+                int rChild = 2 * i + 2;
+                int maxChild = lChild;
+
+                if (rChild < A.Count && A[rChild].CompareTo(A[lChild]) > 0)
+                {
+                    maxChild = rChild;
+                }
+
+                if (A[i].CompareTo(A[maxChild]) < 0)
+                {
+                    Swap(i, maxChild);
+                    i = maxChild;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+
+
+        public int Size()
+        {
+            return count;
+        }
+
+
+        private void Swap(int i, int j)
+        {
+            T temp = A[i];
+            A[i] = A[j];
+            A[j] = temp;
+        }
+
+
+
+        public class Simulation
+        {
+            private PriorityQueue<Event> eventQueue; // Priority Queue of Events
+            private Queue<Event> waitQLevel1;
+            private Queue<Event> waitQLevel2;
+            private Queue<Event> waitQLevel3;
+            Random r;
+
+
+            // Constructor
+            public Simulation()
+            {
+                eventQueue = new PriorityQueue<Event>();
+                waitQLevel1 = new Queue<Event>();
+                waitQLevel2 = new Queue<Event>();
+                waitQLevel3 = new Queue<Event>();
+
+                Random r = new Random();
+
+            }
+
+            public void RunSimulation(int M, int T, int N, PriorityQueue<Event> priorQ)
+            {
+                eventQueue = priorQ;
+                int[] doctorsAssigned = new int[N];
+
+                double interarrival = 32400;// 9am in seconds
+
+                while (!eventQueue.Empty())
+                {
+                    Event front = eventQueue.Front();// Formula for the average waiting time.
+                    double u = r.NextDouble();
+                    interarrival = -M * Math.Log(1 - u);
+
+                    TimeSpan arrival = TimeSpan.FromSeconds(front.TimeOccur);
+                    String output = arrival.ToString("HH: mm :: ss");
+
+                    double current = front.TimeOccur;
+
+                    if (front.EventType == "Arrival")
+                    {
+                        int docsPresent = FindDoctor(doctorsAssigned);// checks to see if there is an available doctor.
+
+                        if (docsPresent > 0)// if there is a doctor available
+                        {
+                            // schedule a dcoctor
+                            appointment(front, T, docsPresent, N);
+
+                            Console.WriteLine(". {0} - Patient {1}({2}) arrives and sees Doctor {3}", output, front.patientID.patientNum, front.patientID.emgLevel, (docsPresent + 1));
+                            //Patient Arrives to meet the Doctor.
+                            doctorsAssigned[docsPresent] = front.patientID.emgLevel;
+
+                            eventQueue.Remove();
+
+                            if (current > 54000)
+                            {
+                                Event Arrival = makeArrival(current, interarrival);
+
+                                eventQueue.Insert(Arrival);
+
+                            }
+                        }
+
+                        else
+                        {
+                            if (front.patientID.emgLevel < 2)
+                            {
+                                waitQ(front);// makes the patient wait in the queue
+
+                                Console.WriteLine(". {0} - Patient {1}({2}) has  arrived and is in the waiting room", output, front.patientID.patientNum, front.patientID.emgLevel);
+
+                                eventQueue.Remove();
+                                // print the patient waiting in the Wait Queue.
+                                appointment(waitQLevel3.Peek(), front.doctorID, N);
+
+                                waitQLevel2.Dequeue();
+
+                            }
+
+                            if (current > 54000)
+                            {
+                                Event Arrival = makeArrival(current, interarrival);
+
+                                eventQueue.Insert(Arrival);
+
+                            }
+
+
+
+
+                        }
+
+
+
+                    }
+
+                    else if (front.EventType == "Departure")
+                    {
+                        int docID = front.doctorID;
+
+                        if (waitQLevel3.Count > 0)
+                        {
+                            Console.WriteLine("{0} - Doctor {1} finishes treatment of Patient {2} and is assigned Patient {3}({4})", output, (front.doctorID + 1), front.patientID.patientNum, waitQLevel3.Peek().patientID.patientNum, waitQLevel3.Peek().patientID.emgLevel);
+
+                            doctorsAssigned[docID] = waitQLevel3.Peek().patientID.emgLevel;// adds to the doctor array
+
+                            eventQueue.Remove(); // removes the patient from the queue
+
+                            appointment(waitQLevel3.Peek(), T, front.doctorID, N);
+
+                            if (current < 54000)
+                            {
+                                Event Arrival = makeArrival(current, interarrival);
+
+                                eventQueue.Insert(Arrival);
+
+                            }
+                        }
+
+                        else if (waitQLevel2.Count > 0)
+                        {
+
+                            Console.WriteLine("{0} - Doctor {1} has treated Patient {2} and is treating Patient {3}({4}.", output, (front.doctorID + 1), front.patientID.patientNum, waitQLevel2.Peek().patientID.patientNum, waitQLevel1.Peek().patientID.emgLevel);
+
+                            doctorsAssigned[docID] = waitQLevel2.Peek().patientID.emgLevel;// adds to the doctor array
+
+                            eventQueue.Remove(); //removes the patient from the queue.
+
+                            appointment(waitQLevel2.Peek(), T, front.doctorID, N);
+
+                            waitQLevel2.Dequeue();
+
+                            if (current < 54000)
+                            {
+
+                                Event Arrival = makeArrival(current, interarrival);
+
+                                eventQueue.Insert(Arrival);
+
+                            }
+
+
+                        }
+
+                        else if (waitQLevel1.Count > 0)
+                        {
+                            Console.WriteLine("{0} - Doctor {1} finishes treatment of Patient {2} and is assigned Patient {3}({4})", output, (front.doctorID + 1), front.patientID.patientNum, waitQLevel1.Peek().patientID.patientNum, waitQLevel1.Peek().patientID.emgLevel);
+
+                            doctorsAssigned[docID] = waitQLevel1.Peek().patientID.emgLevel;// adds to the doctor array
+
+                            eventQueue.Remove();
+
+                            appointment(waitQLevel1.Peek(), T, front.doctorID, N);// 
+
+                            waitQLevel1.Dequeue();
+
+                            if (current < 54000)
+                            {
+                                Event Arrival = makeArrival(current, interarrival);
+
+                                eventQueue.Insert(Arrival);
+                            }
+                        }
+                        else
+                        {
+                            if (front.doctorID > N)
+                            {
+                                doctorsAssigned[N - 1] = 0;
+                            }
+                            else if (front.doctorID == 0)
+                            {
+                                doctorsAssigned[0] = 0;
+                            }
+                            else
+                            {
+                                doctorsAssigned[front.doctorID - 1] = 0;
+                            }
+
+                            Event Arrival = makeArrival(current, interarrival);
+
+                            eventQueue.Insert(Arrival);
+                        }
+
+                        Console.WriteLine("{0} - Doctor {1} has finished treating of Patient {2}" +  output + (front.doctorID + 1) + front.patientID.patientNum);
+
+                        eventQueue.Remove();
+                    }
+
+
+                    if (waitQLevel1.Count > 0 || waitQLevel2.Count > 0 || waitQLevel3.Count > 0)
+                    {
+                        Console.WriteLine("\n======  Emergency Levels  :) ======");
+                        Console.WriteLine("Level 1: {0} patients", waitQLevel1.Count);
+                        Console.WriteLine("Level 2: {0} patients", waitQLevel2.Count);
+                        Console.WriteLine("Level 3: {0} patients", waitQLevel3.Count);
+                        Console.WriteLine("==================\n");
+                    }
+
+
+                    Console.WriteLine("Simulation is Done.");
+                }
+
+
+
+            }
+
+
+
+            private void appointment()
+            {
+                throw new NotImplementedException();
+            }
+
+            private void waitQ(Event front)
+            {
+                throw new NotImplementedException();
+            }
+
+            private Event makeArrival(double current, double interarrival)
+            {
+                throw new NotImplementedException();
+            }
+
+            private int TimeOccur()
+            {
+
+            }
+
+            private int FindDoctor(int[] doctorsassigned)
+            {
+
+            }
+
+        }
+
+
+        private bool Empty()
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
