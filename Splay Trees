@@ -1,0 +1,92 @@
+using System;
+using System.Collections.Generic;
+
+namespace Assignment3
+{
+    class MainClass
+    {
+        public static void Main(string[] args)
+        {
+            
+        }
+
+
+        // Part B  Deep Copy
+        public class SplayTree<T> : ICloneable
+        {
+            // A node within the Splay Tree.
+            public class Node
+            {
+                public T Data;
+                public Node left, right;
+
+                public Node(T Data)
+                {
+                    Data = Data;
+                    left, right = null;
+                }
+
+
+            }
+
+            private Node root;
+
+            // Clone Method Implementation
+            // This creates a deep copy of the current SplayTree using preorder traversal.
+            public object Clone()
+            {
+                SplayTree<T> clonedTree = new SplayTree<T>();
+                clonedTree.root = CloneNode(root);
+                return clonedTree; // Deep copy of the current Splay Tree.
+            }
+
+            //Clones a node recursively and its subtree.
+            private Node CloneNode(Node ogNode)
+            {
+                if (ogNude == null)
+                {
+                    return null;
+                }
+
+                Node newNode = new Node(ogNode.Data);
+                newNode.left = CloneNode(ogNode.Left);
+                newNode.right = CloneNode(ogNode.Right);
+
+                return newNode;// The cloned node and its subtree
+            }
+
+            // Equals Method Implementation
+            // Determines if the current Tree is equal to another object.
+            public override bool Equals(object obj)
+            {
+                if (obj == null || GetType() != obj.GetType())
+                {
+                    return false;
+                }
+
+                SplayTree<T> secondTree = (SplayTree<T>)obj;
+
+                return TreesEqual(root, secondTree.root);// Returns True if the objects are equal, if not return false.
+            }
+
+            private bool TreesEqual(Node node1, Node node2)// Recursively compares the structure and values of the two trees.
+            {
+                if (node1 = null && node2 = null)
+                {
+                    return true;
+                }
+
+                if (node1 != null && node2 != null)
+                {
+                    return EqualityComparer<T>.Default.Equals(node1.Data, node2.Data) &&
+                        TreesEqual(node1.left, node2.left) && TreesEqual(node1.right, node2.right);
+                }
+
+                return false;// It returns true if the trees are equal if not return false.
+            }
+
+
+
+        }
+    }
+}
